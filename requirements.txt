@@ -1,3 +1,4 @@
 behave
 PyHamcrest
 selenium
+webdriver_manager
