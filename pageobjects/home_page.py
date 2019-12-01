@@ -7,3 +7,4 @@ class HomePage(BasePage):
         insurance_locator = constants.HOME_PAGE['INSURANCE_TAB']
         insurance_element = BaseElement(insurance_locator, self._driver)
         insurance_element.click()
+

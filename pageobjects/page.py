@@ -18,12 +18,12 @@ class BasePage(object):
     def maximize_window(self):
         self._driver.maximize_window()
 
+    def find_element(self, tuple_selector):
+        return self._driver.find_element(*tuple_selector)
+
     def find_elements(self, tuple_selector):
         element_list = self._driver.find_elements(*tuple_selector)
         return element_list
-
-    def find_element(self, tuple_selector):
-        return self._driver.find_element(*tuple_selector)
 
     @property
     def driver(self):
@@ -35,13 +35,12 @@ class BaseElement(object):
 
     def __init__(self, locator, driver):
         if not isinstance(driver, Driver):
-            self._driver = Driver(selenium_webdriver=driver)
+            self._driver = Driver(driver)
         else:
             self._driver = driver
         self._locator = locator
         self._web_element = None
 
-    # TODO: assume all element have event click, if not plz move it
     def click(self, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False, move_to_element_by_script=False,
               by_script=False):
         if move_to_element or move_to_element_by_script:

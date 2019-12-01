@@ -20,6 +20,6 @@ class DataHelper:
     @staticmethod
     def convert_key_value_table_to_dictionary(table):
         result = {}
-        for row in table:
-            result[row[0]] = row[1]
+        for key, value in table:
+            result[key] = value
         return result

@@ -25,7 +25,7 @@ Feature: Verify the search functionality of Travel Insurance section
       | Policy Type | single trip |
       | Whos Going  | just me     |
       | Destination | Thailand    |
-      | Start Date  | 10-06-2019  |
-      | End Date    | 15-06-2019  |
+      | Start Date  | 10-12-2019  |
+      | End Date    | 15-12-2019  |
     And the user clicks on Show my Results button
     Then the user should see the filter overview in Tralvel Insurance Search Result page is displaying users selected options correctly
