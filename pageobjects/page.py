@@ -1,144 +1,111 @@
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 from conf.env_setup import EnvSetup
 from pageobjects import constants
+from pageobjects.driver import Driver
 
 
-class Page:
+class BasePage(object):
+    """Base class to initialize the base page that will be called from all pages"""
 
-    def __init__(self, selenium_webdriver):
-        self.driver = selenium_webdriver
+    def __init__(self, driver):
+        if not isinstance(driver, Driver):
+            self._driver = Driver(driver)
+        else:
+            self._driver = driver
 
     def quit(self):
-        self.driver.quit()
+        self._driver.quit()
 
     def maximize_window(self):
-        self.driver.maximize_window()
+        self._driver.maximize_window()
 
     def find_elements(self, tuple_selector):
-        element_list = self.driver.find_elements(*tuple_selector)
+        element_list = self._driver.find_elements(*tuple_selector)
         return element_list
 
-    # ========================== wait elements ===============================================
-    def wait_for_visibility_of_element(self, by, selector, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.visibility_of_element_located((by, selector)))
+    def find_element(self, tuple_selector):
+        return self._driver.find_element(*tuple_selector)
 
-    def wait_for_text_to_be_present(self, by, selector, text, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.text_to_be_present_in_element((by, selector), text))
+    @property
+    def driver(self):
+        return self._driver
 
-    def wait_for_element_to_click(self, by, selector, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.element_to_be_clickable((by, selector)))
 
-    def get_text(self, by, selector):
-        element = self.wait_for_visibility_of_element(by, selector)
-        return element.text
+class BaseElement(object):
+    """Base page class that is initialized on every page object class."""
 
-    def move_to_element(self, tuple_selector, by_script=False):
-        element = self.wait_element_exist(tuple_selector)
-        if by_script:
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+    def __init__(self, locator, driver):
+        if not isinstance(driver, Driver):
+            self._driver = Driver(selenium_webdriver=driver)
         else:
-            actions = ActionChains(self.driver)
-            actions.move_to_element(element)
-            actions.perform()
+            self._driver = driver
+        self._locator = locator
+        self._web_element = None
 
-    # ---- wait methods ------------
+    # TODO: assume all element have event click, if not plz move it
+    def click(self, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False, move_to_element_by_script=False,
+              by_script=False):
+        if move_to_element or move_to_element_by_script:
+            self._driver.move_to_element(self._locator, move_to_element_by_script)
 
-    def wait_element_exist(self, tuple_selector, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.presence_of_element_located(tuple_selector))
-
-    def wait_for_visibility_of_element_located(self, tuple_selector, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.visibility_of_element_located(tuple_selector))
-
-    def wait_for_invisibility_of_element_located(self, tuple_selector, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.invisibility_of_element_located(tuple_selector))
-
-    def wait_for_text_to_be_present_in_element(self, tuple_selector, text, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.text_to_be_present_in_element(tuple_selector, text))
-
-    def wait_for_element_to_be_clickable(self, tuple_selector, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        return wait.until(EC.element_to_be_clickable(tuple_selector))
-
-    # ---- action methods ------------
-
-    def click_element(self, tuple_selector, move_to_element=False, move_to_element_by_script=False,
-                      timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, by_script=False):
-        if move_to_element:
-            self.move_to_element(tuple_selector)
-        if move_to_element_by_script:
-            self.move_to_element(tuple_selector, by_script=True)
-        element = self.wait_for_element_to_be_clickable(tuple_selector, timeout)
+        self._web_element = self._driver.wait_for_element_to_be_clickable(self._locator, timeout)
         if by_script:
-            self.driver.execute_script("arguments[0].click();", element)
-            self.driver.execute_script("return arguments[0].style", element)
+            self._driver.execute_script('arguments[0].click();', self._web_element)
         else:
-            element.click()
+            self._web_element.click()
 
-    def type_text(self, tuple_selector, value=None, tab=None, enter=None):
-        element = self.wait_for_visibility_of_element_located(tuple_selector)
-        if value:
-            element.send_keys(value)
-        if tab:
-            element.send_keys(Keys.TAB)
-        if enter:
-            element.send_keys(Keys.ENTER)
+    def send_keys(self, *keys):
+        self._web_element = self._driver.wait_for_visibility_of_element_located(self._locator)
+        for key in keys or []:
+            self._web_element.send_keys(key)
 
-    # ---- get information methods ------------
-    def get_element_text(self, tuple_selector, move_to_element=False, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
+    def get_text(self):
+        self._web_element = self._driver.wait_for_element_to_be_presented(self._locator)
+        return self._web_element.text
+
+    def get_attribute(self, attribute, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False):
         if move_to_element:
-            self.move_to_element(tuple_selector)
-        element = self.wait_for_visibility_of_element_located(tuple_selector, timeout)
+            self._driver.move_to_element(self._locator)
+        self._web_element = self._driver.wait_element_exist(self._locator, timeout)
+        return self._web_element.get_attribute(attribute)
 
-        return element.text
+    @property
+    def web_element(self):
+        return self._driver.wait_for_element_to_be_presented(self._locator)
 
-    def get_text_of_elements(self, tuple_selector, move_to_element=False, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
-        wait = WebDriverWait(self.driver, timeout)
-        elements = wait.until(EC.presence_of_all_elements_located(tuple_selector))
-        if not move_to_element:
-            return self.get_text_list(elements)
-        text_list = []
-        for e in elements:
-            ActionChains(self.driver).move_to_element(e).perform()
-            text_list.append(str(e.text))
-        return text_list
+    def find_element(self, tuple_selector):
+        return self.web_element.find_element(tuple_selector)
 
-    def get_attribute_of_element(self, tuple_selector, attribute, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS,
-                                 move_to_element=False):
-        if move_to_element:
-            self.move_to_element(tuple_selector)
-        element = self.wait_element_exist(tuple_selector, timeout)
-        return element.get_attribute(attribute)
+    def find_elements(self, tuple_selector):
+        return self.web_element.find_elements(tuple_selector)
 
-    @staticmethod
-    def get_text_list(list_data):
-        name_list = []
-        for item in list_data:
-            name_list.append(item.text)
-        return name_list
 
-    # ---- Application common methods ------------
+class DropdownElement(BaseElement):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def click_and_select_option_from_dropdown(self, dropdown_locator, option_name,
-                                              timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False):
-        self.click_element(dropdown_locator, timeout)
+    # just ez for use
+    def select_option_by_option_name(self, option_name, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False):
         option_locator = constants.SHARE_CONSTANTS['DROPDOWN_OPTION']
         option_locator = (option_locator[0], option_locator[1].format(option_name=option_name))
-        self.click_element(option_locator, move_to_element=move_to_element)
+        self.select_option_option_locator(option_locator, timeout, move_to_element)
 
-    def select_date_on_date_picker(self, day):
+    def select_option_option_locator(self, option_locator, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS,
+                                     move_to_element=False):
+        self.click(timeout)
+        option_element = BaseElement(option_locator, self._driver)
+        option_element.click(timeout, move_to_element)
+
+
+class DatePickerElement(BaseElement):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def select_date_by_day(self, day):
         day_locator = constants.SHARE_CONSTANTS['DATE_OPTION']
         day_locator = (day_locator[0], day_locator[1].format(day=day))
-        self.click_element(day_locator, move_to_element=True)
+        self.select_date_by_day_locator(day_locator)
 
-    def wait_for_invisibility_of_loading_icon(self):
-        self.wait_for_invisibility_of_element_located(constants.SHARE_CONSTANTS['LOADING_ICON'])
+    def select_date_by_day_locator(self, day_locator):
+        self.click()
+        day_element = BaseElement(day_locator, self._driver)
+        day_element.click(move_to_element=True)
