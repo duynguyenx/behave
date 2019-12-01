@@ -64,7 +64,7 @@ class BaseElement(object):
     def get_attribute(self, attribute, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False):
         if move_to_element:
             self._driver.move_to_element(self._locator)
-        self._web_element = self._driver.wait_element_exist(self._locator, timeout)
+        self._web_element = self._driver.wait_for_element_to_be_presented(self._locator, timeout)
         return self._web_element.get_attribute(attribute)
 
     @property
