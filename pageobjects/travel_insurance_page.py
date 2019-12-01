@@ -1,4 +1,5 @@
-from pageobjects.page import BasePage, DropdownElement, DatePickerElement, BaseElement
+from pageobjects.base_page import BasePage
+from pageobjects.elements import DropdownElement, DatePickerElement, BaseElement
 from pageobjects import constants
 
 

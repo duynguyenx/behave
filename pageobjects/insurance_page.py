@@ -1,4 +1,5 @@
-from pageobjects.page import BasePage, BaseElement
+from pageobjects.base_page import BasePage
+from pageobjects.elements import BaseElement
 from pageobjects import constants
 
 
