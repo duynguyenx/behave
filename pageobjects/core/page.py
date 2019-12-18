@@ -1,4 +1,6 @@
-from pageobjects.driver import Driver
+from conf.env_setup import EnvSetup
+from pageobjects.core.enums import WaitType
+from pageobjects.core.driver import Driver, WAIT_MAPPING
 
 
 class BasePage(object):
@@ -9,6 +11,7 @@ class BasePage(object):
             self._driver = Driver(driver)
         else:
             self._driver = driver
+        self.__wait_mapping = None
 
     def quit(self):
         self._driver.quit()
@@ -22,6 +25,9 @@ class BasePage(object):
     def find_elements(self, tuple_selector):
         element_list = self._driver.find_elements(*tuple_selector)
         return element_list
+
+    def wait_elements(self, tuple_locator, wait_type: WaitType, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS):
+        return WAIT_MAPPING[wait_type](self._driver, tuple_locator, timeout)
 
     @property
     def driver(self):

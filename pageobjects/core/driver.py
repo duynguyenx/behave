@@ -3,6 +3,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from conf.env_setup import EnvSetup
+from pageobjects.core.enums import WaitType
 
 
 class Driver:
@@ -55,3 +56,12 @@ class Driver:
             actions = ActionChains(self._driver)
             actions.move_to_element(element)
             actions.perform()
+
+
+WAIT_MAPPING = {
+    WaitType.WAIT_FOR_VISIBILITY_OF_ELEMENT_LOCATED: Driver.wait_for_visibility_of_element_located,
+    WaitType.WAIT_FOR_INVISIBILITY_OF_ELEMENT_LOCATED: Driver.wait_for_invisibility_of_element_located,
+    WaitType.WAIT_FOR_ELEMENT_TO_BE_PRESENTED: Driver.wait_for_element_to_be_presented,
+    WaitType.WAIT_FOR_ELEMENTS_TO_BE_PRESENTED: Driver.wait_for_elements_to_be_presented,
+    WaitType.WAIT_FOR_ELEMENTS_TO_BE_CLICKABLE: Driver.wait_for_element_to_be_clickable,
+}

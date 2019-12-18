@@ -1,9 +1,8 @@
 from conf.env_setup import EnvSetup
-from pageobjects import constants
-from pageobjects.driver import Driver
+from pageobjects.core.driver import Driver
 
 
-class BaseElement(object):
+class Element(object):
     """Base page class that is initialized on every page object class."""
 
     def __init__(self, locator, driver):
@@ -49,35 +48,3 @@ class BaseElement(object):
 
     def find_elements(self, tuple_selector):
         return self.web_element.find_elements(tuple_selector)
-
-
-class DropdownElement(BaseElement):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    # just ez for use
-    def select_option_by_option_name(self, option_name, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS, move_to_element=False):
-        option_locator = constants.SHARE_CONSTANTS['DROPDOWN_OPTION']
-        option_locator = (option_locator[0], option_locator[1].format(option_name=option_name))
-        self.select_option_option_locator(option_locator, timeout, move_to_element)
-
-    def select_option_option_locator(self, option_locator, timeout=EnvSetup.WAIT_TIMEOUT_SECONDS,
-                                     move_to_element=False):
-        self.click(timeout)
-        option_element = BaseElement(option_locator, self._driver)
-        option_element.click(timeout, move_to_element)
-
-
-class DatePickerElement(BaseElement):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def select_date_by_day(self, day):
-        day_locator = constants.SHARE_CONSTANTS['DATE_OPTION']
-        day_locator = (day_locator[0], day_locator[1].format(day=day))
-        self.select_date_by_day_locator(day_locator)
-
-    def select_date_by_day_locator(self, day_locator):
-        self.click()
-        day_element = BaseElement(day_locator, self._driver)
-        day_element.click(move_to_element=True)
