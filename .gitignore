@@ -21,4 +21,4 @@ target/
 .idea
 .bundle/
 atlassian-ide-plugin.xml
-
+venv/

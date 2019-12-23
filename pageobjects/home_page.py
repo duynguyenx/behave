@@ -1,7 +1,9 @@
-from pageobjects.page import Page
-from pageobjects import constants
+from pageobjects.core import BasePage
+from pageobjects.core.elements import Element
+from pageobjects.locators import home_page_locators
 
 
-class HomePage(Page):
+class HomePage(BasePage):
     def click_insurance_tab(self):
-        self.click_element(constants.HOME_PAGE['INSURANCE_TAB'])
+        Element(home_page_locators.TABS['INSURANCE_TAB'], self.driver).click()
+

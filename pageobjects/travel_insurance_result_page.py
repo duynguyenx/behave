@@ -1,10 +1,14 @@
-from pageobjects.page import Page
-from pageobjects import constants
+from pageobjects.core import BasePage
+from pageobjects.core.elements import Element
+from pageobjects.core.enums import WaitType
+from pageobjects.locators import travel_insurance_result_page_locators as locators
 
 
-class TravelInsuranceResultPage(Page):
+class TravelInsuranceResultPage(BasePage):
     def get_all_card_brand_names(self):
-        return self.get_text_of_elements(constants.TRAVEL_INSURANCE_RESULT_PAGE['ALL_CARD_BRAND_NAMES'])
+        elements = self.wait_elements(locators.ALL_CARD_BRAND_NAMES, WaitType.WAIT_FOR_ELEMENTS_TO_BE_PRESENTED)
+        return [element.text for element in elements]
 
     def get_filter_overview_values(self):
-        return self.get_element_text(constants.TRAVEL_INSURANCE_RESULT_PAGE['FILTER_VALUES'])
+        return Element(locators.FILTER_VALUES, self.driver).get_text()
+
